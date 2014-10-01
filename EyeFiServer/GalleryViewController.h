@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "EyeFiServer.h"
 
-@interface GalleryViewController : UIViewController <UICollectionViewDataSource, UICollectionViewDelegate, UIAlertViewDelegate>
+@interface GalleryViewController : UIViewController <UICollectionViewDataSource, UICollectionViewDelegate, UIAlertViewDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) EyeFiServer *eyefiServer;
 @property (nonatomic, strong) NSMutableArray *datasource;

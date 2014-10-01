@@ -32,7 +32,7 @@
 - (void)layoutSubviews
 {
     self.imageView.frame = self.bounds;
-    self.fileName.frame = CGRectMake(0, self.bounds.size.height-40, self.bounds.size.width, 40);
+    self.fileName.frame = CGRectMake(0, self.bounds.size.height-50, self.bounds.size.width, 50);
 }
 
 @end

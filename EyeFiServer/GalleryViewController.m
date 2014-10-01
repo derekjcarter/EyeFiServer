@@ -28,6 +28,7 @@ static float galleryMinSpacing = 5.0f;              // minimum spacing between p
     // Gallery collection view
     UICollectionView              *_collectionView;
     UICollectionViewFlowLayout    *_flowLayout;
+    NSIndexPath                   *_currentTouchedIndexPath;
     
     // Async queue for thumbnail images
     dispatch_queue_t              thumbnailLoadingQueue;
@@ -95,6 +96,12 @@ static float galleryMinSpacing = 5.0f;              // minimum spacing between p
     
     // Add collection view to uiview
     [self.view addSubview:_collectionView];
+    
+    // Add long press gesture for deletion
+    UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPressGesture:)];
+    longPressGesture.minimumPressDuration = .2;
+    longPressGesture.delegate = self;
+    [_collectionView addGestureRecognizer:longPressGesture];
     
     // Set up info button
     _infoButton = [UIButton buttonWithType:UIButtonTypeInfoDark];
@@ -351,6 +358,76 @@ static float galleryMinSpacing = 5.0f;              // minimum spacing between p
     [_loadingView removeFromSuperview];
     
     _loaderIsShown = NO;
+}
+
+
+
+#pragma mark - Remove Photo Methods
+/***************************************************************************************************************
+ * Remove Photo Methods
+ ***********************************************q****************************************************************/
+- (void)handleLongPressGesture:(UILongPressGestureRecognizer *)gestureRecognizer
+{
+    if (gestureRecognizer.state != UIGestureRecognizerStateBegan && gestureRecognizer.state != UIGestureRecognizerStateEnded) {
+        return;
+    }
+    
+    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+        CGPoint touchPoint = [gestureRecognizer locationInView:_collectionView];
+        NSIndexPath *indexPath = [_collectionView indexPathForItemAtPoint:touchPoint];
+        if (indexPath) {
+            _currentTouchedIndexPath = indexPath;
+            
+            GalleryCellView *cell = (GalleryCellView *)[_collectionView cellForItemAtIndexPath:indexPath];
+            cell.alpha = 0.25f;
+        }
+    }
+
+    if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        CGPoint touchPoint = [gestureRecognizer locationInView:_collectionView];
+        NSIndexPath *indexPath = [_collectionView indexPathForItemAtPoint:touchPoint];
+        if (indexPath && indexPath == _currentTouchedIndexPath) {
+            GalleryCellView *cell = (GalleryCellView *)[_collectionView cellForItemAtIndexPath:indexPath];
+            cell.alpha = 0.33f;
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Remove this photo?"
+                                                                message:nil
+                                                               delegate:self
+                                                      cancelButtonTitle:@"Cancel"
+                                                      otherButtonTitles:@"Remove",
+                                      nil];
+            [alertView show];
+        } else {
+            if (_currentTouchedIndexPath) {
+                // Reset cell
+                GalleryCellView *cell = (GalleryCellView *)[_collectionView cellForItemAtIndexPath:_currentTouchedIndexPath];
+                cell.alpha = 1;
+                _currentTouchedIndexPath = nil;
+            }
+        }
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1) {
+        // Remove file
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        NSString *filePath = [NSString stringWithFormat:@"%@", self.datasource[_currentTouchedIndexPath.row]];
+        NSError *error;
+        BOOL success = [fileManager removeItemAtPath:filePath error:&error];
+        if (!success) {
+            NSLog(@"Error: %@", [error localizedDescription]);
+        }
+        dispatch_block_t updates = ^{
+            [self.datasource removeObjectAtIndex:_currentTouchedIndexPath.row];
+            [_collectionView deleteItemsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForItem:_currentTouchedIndexPath.row inSection:0]]];
+        };
+        [_collectionView performBatchUpdates:updates completion:nil];
+    } else {
+        // Reset cell
+        GalleryCellView *cell = (GalleryCellView *)[_collectionView cellForItemAtIndexPath:_currentTouchedIndexPath];
+        cell.alpha = 1.0f;
+    }
 }
 
 @end

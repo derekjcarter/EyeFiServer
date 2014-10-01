@@ -25,7 +25,7 @@
         [self setType: @"_http._tcp."];
         [self setPort: 59278];
         
-        // set documentRoot to Documents folder
+        // Set documentRoot to Documents folder
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : nil;
         self.documentRoot = basePath;
@@ -35,11 +35,13 @@
 
 - (void)startServer
 {
+    NSLog(@"EyeFiServer | startServer");
     [self start: nil];
 }
 
 - (void)stopServer
 {
+    NSLog(@"EyeFiServer | stopServer");
     [self stop];
 }
 

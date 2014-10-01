@@ -8,10 +8,13 @@
 
 #import "EyeFiParser.h"
 
-@implementation EyeFiParser
+@interface EyeFiParser ()
 {
     BOOL _isReceivingData;  // Boolean used to trap if we are currently interpreting data
 }
+@end
+
+@implementation EyeFiParser
 
 - (id)initWithData:(NSData *)data
 {
